@@ -45,5 +45,10 @@ cron.schedule('*/5 * * * * *', () => {
     getFilesNames(directoryPath);
 });
 
+// Ejecutar a las 6am y a las 6pm
+//cron.schedule('0 0 6,18 * * *', () => {
+//getFilesNames(directoryPath);
+//});
+
 
 
