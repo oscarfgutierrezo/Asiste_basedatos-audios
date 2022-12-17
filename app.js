@@ -2,7 +2,8 @@ const glob = require("glob");
 const cron = require('node-cron');
 const mysql = require ('mysql') ; 
 
-const directoryPath = "C:/laragon/www/Grabaciones/";
+const directoryPath = "/media/tecnologia/Storage/Grabaciones/";
+// const directoryPath = "C:/laragon/www/Grabaciones/";
 
 
 const dbConfig = mysql.createConnection ({
