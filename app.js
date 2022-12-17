@@ -24,6 +24,7 @@ const getFilesNames = (path) => {
   glob(path + '**/*.WAV', (err, res) => {
     try {
         res.forEach( file => {
+          console.log(file);
             const fileArray = file.split('/');
             const fileData = {
                 nombre: `${fileArray.at(-1)}`,
