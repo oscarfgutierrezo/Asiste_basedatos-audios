@@ -1,56 +1,60 @@
-const glob = require("glob");
+const fs = require('fs');
+const path = require('path');
 const cron = require('node-cron');
 const mysql = require ('mysql') ; 
 
-const directoryPath = "/media/tecnologia/Storage/Grabaciones/";
-// const directoryPath = "C:/laragon/www/Grabaciones/";
-
+const mainPath = "C:/laragon/www/Grabaciones/";
 
 const dbConfig = mysql.createConnection ({
-    host: 'localhost',
-    user: "baq",
-    password: "Asiste.2021",
-    database: "audios",
+  host: 'localhost',
+  user: "baq",
+  password: "Asiste.2021",
+  database: "audios",
 });
 
 dbConfig.connect((err) => {
-    if (err) {
-      console.log("Error occurred", err);
-    } else {
-      console.log("Connected to MySQL Server");
-    }
+  if (err) {
+    console.log("Error occurred", err);
+  } else {
+    console.log("Connected to MySQL Server");
+  }
 });
 
-const getFilesNames = (path) => {
-  glob(path + '**/*.WAV', (err, res) => {
-    try {
-        res.forEach( file => {
-          console.log(file);
-            const fileArray = file.split('/');
-            const fileData = {
-                nombre: `${fileArray.at(-1)}`,
-                path: `${file}`
-            };            
-
-            dbConfig.query("INSERT INTO audios set ? ", [fileData], (err, rows) => {
-                console.log(err ? "error" + err : "Audio agregado");
-              });
-        });
-    } catch (error) {
-        console.log(err);
+const iterate = async (folderPath) => {
+  const results = fs.readdirSync(folderPath);
+  for (const result of results) {
+    const innerPath = path.join( folderPath, result );
+    const isDirectory = fs.lstatSync(path.resolve( folderPath, result )).isDirectory();
+    if (isDirectory) {
+      console.log('Carpeta encontrada');
+      iterate(innerPath);
+    } else {
+      console.log('audio encontrado');
+      await insertAudioInDB(innerPath, result)
+        .then( msg => console.log(msg))
+        .catch(msg => console.log(msg))
     }
+  }
+};
+
+const insertAudioInDB = (path, nombre) => {
+  return new Promise((resolve, reject) => {
+    const audioData = {
+      path,
+      nombre
+    }
+
+    dbConfig.query("INSERT INTO audios set ? ", [audioData], (err, rows) => {
+      if (err) {
+        reject('El audio ya se encuentra en la base de datos')
+      } else {
+        resolve('Audio agregado');
+      }
+    });   
   })
 }
 
 
-cron.schedule('*/5 * * * * *', () => {
-    getFilesNames(directoryPath);
+cron.schedule('00 00 06 * * *', () => {
+  iterate(mainPath);
 });
-
-// Ejecutar a las 6am y a las 6pm
-//cron.schedule('0 0 6,18 * * *', () => {
-//getFilesNames(directoryPath);
-//});
-
-
-
